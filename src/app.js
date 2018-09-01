@@ -19,7 +19,12 @@ const createAppState = (doc) => ({
 });
 
 const events = (appState) => {
-  appState.$reload.onclick = () => appState = clear(appState);
+  appState.$reload.onclick = () => {
+    const savePause = appState.pause;
+    appState = clear(appState);
+    appState.pause = savePause;
+  };
+
   appState.$pause.onclick = ()  => {
     appState.pause = !appState.pause;
     appState.$pause.innerHTML = appState.pause ? 'Play' : 'Pause';
