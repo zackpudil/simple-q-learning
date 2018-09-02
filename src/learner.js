@@ -1,90 +1,91 @@
-const createState = (ctx) => ({
-  agent: 0,
-  prevAgent: -1,
-  death: new Array(20).fill(0).map(_ => 1 + Math.floor(Math.random()*98)),
-  goal: 99,
-  path: { state: -1 },
-  grid: [],
-  ctx: ctx,
-  actions: [],
-  lastReward: 0
-});
+const { Architect } = require('synaptic');
+const visualize = require('./visualize');
+
+const createState = (ctx, appState) => {
+  const goal = Math.floor(Math.random()*99);
+  const state = {
+    agent: 0,
+    prevAgent: -1,
+    death: new Array(20).fill(0).map(_ => 1 + Math.floor(Math.random()*98)).filter(i => i != goal),
+    goal: goal,
+    path: [],
+    history: [],
+    grid: new Array(100).fill(0).map((_, i) => ({ id: i, reward: 0})),
+    ctx: ctx,
+    actions: [],
+    brain: new Architect.Perceptron(2, 16, 8, 1),
+    lastReward: 0
+  }
+
+  visualize(appState.$visual.getContext('2d'), state.brain);
+  return state;
+};
 
 const getActions = (agent) => {
   const moves = [];
   const gridx = agent % 10,
         gridy = Math.floor(agent/10);
 
+
   if (gridx != 0) moves.push(-1);
-  if (gridx != 9) moves.push(1);
   if (gridy != 0) moves.push(-10);
   if (gridy != 9) moves.push(10);
+  if (gridx != 9) moves.push(1);
 
-  return moves;
+  return moves.sort((a, b) => Math.random() - Math.random());
 };
 
-const flattenPath = path => {
-  if (path) return [path, ...flattenPath(path.prev)];
-  return [];
-}
+const getRewardTarget = (state, id) => {
+  const pastReward = state.history.some(h => h.id == id)
+    ? state.history.find(h => h.id == id).reward : 0.2;
 
-const findPath = (path, state) => {
-  if (path.state == state) return path;
-  if (path.prev) return findPath(path.prev, state);
+  const rewalked = state.path.some(p => p.state == id)
+    ? -0.1*state.path.filter(p => p.state == id).length : 0;
 
-  return null;
+  return state.death.some(d => d == id) ? -1
+    : state.goal == id ? 3
+    : pastReward + rewalked;
 };
 
-const getReward = (state) => {
-  if (state.death.some(d => state.agent == d)) return -1;
-  else if(state.agent == state.goal) return 1;
-  else if(state.grid.find(g => g.id == state.agent)) return -0.05;
-  return 0.03;
-};
+const getReward = (state, agent, relearn = true) => {
+  if(relearn) state.history.forEach(h => getReward(state, h.id, false));
 
-const updateGrid = (grid, path, reward) => {
-  if(path.state == -1) return;
-  const g = grid.find(g => g.id === path.state);
+  const prev = state.history.find(h => h.id == agent);
 
-  g.reward = (g.reward || 0) + reward;
-  if(path.prev) updateGrid(grid, path.prev, reward*(reward > 0 ? 0.8 : 0.3));
+  const inputs = [agent/100, prev ? prev.reward : 0];
+  const target = getRewardTarget(state, agent);
+
+  state.brain.activate(inputs);
+  state.brain.propagate(0.3, [(1 + target)/2]);
+  const reward = state.brain.activate(inputs);
+  return (-1 + 2*reward[0]);
 };
 
 const moveAgent = (state) =>  {
-  correlateReward = (agent) =>
-    getActions(agent)
-      .map(a => {
-        const grid = state.grid.find(g => g.id == (agent + a));
-        return { a, r: grid ? grid.reward : Math.random()*0.5 }
-      })
-      .sort((a, b) => b.r - a.r);
+  const actions = getActions(state.agent)
+    .map(a => ({ a, r: getReward(state, state.agent + a) }))
+    .sort((a, b) => b.r - a.r);
 
-  state.agent += correlateReward(state.agent)[0].a;
-  state.actions = correlateReward(state.agent);
-  state.path = { state: state.agent, prev: state.path };
+  actions.forEach(a => state.grid.find(g => g.id == state.agent + a.a).reward = a.r);
 
-  return state;
-};
+  state.agent += actions[0].a;
+  state.actions = actions;
+  state.path.push({ state: state.agent });
 
-const learn = (state) => {
-  const reward = getReward(state);
-  state.lastReward = reward;
+  if(!state.history.some(h => h.id == state.agent - actions[0].a))
+    state.history.push({ id: state.agent - actions[0].a, reward: actions[0].r });
+  else
+    state.history.find(h => h.id == state.agent - actions[0].a).reward = actions[0].r;
 
-  let grid = state.grid.find(g => g.id == state.path.state);
-  if(!grid) {
-    grid = { id: state.path.state };
-    state.grid.push(grid);
-  }
-
-  updateGrid(state.grid, state.path, reward);
   return state;
 };
 
 const isOver = (state) => {
-  const r = getReward(state);
-  if(r == -1 || r == 1) {
+  const r = getRewardTarget(state, state.agent);
+  state.lastReward = r;
+  if(r == -1 || r == 3 || state.path > 200) {
     state.agent = 0;
-    state.path = { state: -1 };
+    state.path = [];
   }
 
   return state;
@@ -93,11 +94,7 @@ const isOver = (state) => {
 module.exports = {
   createState,
   getActions,
-  findPath,
-  flattenPath,
   getReward,
-  updateGrid,
   moveAgent,
-  learn,
   isOver
 };

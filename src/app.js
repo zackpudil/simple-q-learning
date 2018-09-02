@@ -15,7 +15,8 @@ const createAppState = (doc) => ({
   $longestPath: doc.getElementById('longestPath'),
   $actions: doc.getElementById('actions'),
   $gridHigh: doc.getElementById('gridHigh'),
-  $gridLow: doc.getElementById('gridLow')
+  $gridLow: doc.getElementById('gridLow'),
+  $visual: doc.getElementById('visual')
 });
 
 const events = (appState) => {
@@ -59,8 +60,8 @@ const update = (appState, state) => {
   appState = updateIter(appState);
   appState = updatePath(appState, state.path);
 
-  if (state.lastReward == 1) appState = updateWin(appState);
-  if (state.lastReward == -1) appState = updateDeath(appState);
+  if (state.lastReward == 3) appState = updateWin(appState);
+  if (state.lastReward == -1 || state.path > 200) appState = updateDeath(appState);
   return appState;
 };
 
@@ -86,7 +87,7 @@ const updateWin = (appState) => {
   appState.wins++;
   appState.$wins.innerHTML = appState.wins;
 
-  if (appState.wins > appState.deaths) {
+  if (appState.wins > appState.deaths + 20) {
     return clear(appState);
   }
 
@@ -94,12 +95,7 @@ const updateWin = (appState) => {
 }
 
 const updatePath = (appState, path) => {
-  let pathLength = 0;
-  const countPath = (path) => {
-    pathLength++;
-    if(path.prev) return countPath(path.prev);
-  };
-  countPath(path);
+  let pathLength = path.length;
 
   if (pathLength > appState.longestPath) appState.longestPath = pathLength;
 
