@@ -82,8 +82,8 @@ const update = (appState, state) => {
   appState = updateIter(appState);
   appState = updatePath(appState, state.path);
 
-  if (state.lastReward == 3) appState = updateWin(appState);
-  if (state.lastReward == -1 || state.path > 200) appState = updateDeath(appState);
+  if (state.lastTarget == 3) appState = updateWin(appState);
+  if (state.lastTarget == -1 || state.path > 200) appState = updateDeath(appState);
   return appState;
 };
 
