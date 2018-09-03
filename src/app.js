@@ -8,6 +8,8 @@ const createAppState = (doc) => ({
   time: 50,
   gridSize: 10,
   events: {},
+  mainCtx: doc.getElementById('canvas').getContext('2d'),
+  visualCtx: doc.getElementById('visual').getContext('2d'),
   $reload: doc.getElementById('reload'),
   $pause: doc.getElementById('pause'),
   $wins: doc.getElementById('wins'),
@@ -18,8 +20,7 @@ const createAppState = (doc) => ({
   $actions: doc.getElementById('actions'),
   $gridHigh: doc.getElementById('gridHigh'),
   $gridLow: doc.getElementById('gridLow'),
-  $gridSize: doc.getElementById('gridSize'),
-  $visual: doc.getElementById('visual')
+  $gridSize: doc.getElementById('gridSize')
 });
 
 const events = (appState) => {
@@ -82,8 +83,8 @@ const update = (appState, state) => {
   appState = updateIter(appState);
   appState = updatePath(appState, state.path);
 
-  if (state.lastTarget == 3) appState = updateWin(appState);
-  if (state.lastTarget == -1 || state.path > 200) appState = updateDeath(appState);
+  if (state.lastTarget == 1) appState = updateWin(appState);
+  if (state.lastTarget == -1 || state.path.length > 1000) appState = updateDeath(appState);
   return appState;
 };
 

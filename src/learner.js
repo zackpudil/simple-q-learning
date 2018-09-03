@@ -1,7 +1,7 @@
 const { Architect } = require('synaptic');
 const visualize = require('./visualize');
 
-const createState = (ctx, appState) => {
+const createState = (appState) => {
   const gs = appState.gridSize;
   const state = {
     agent: 0,
@@ -9,7 +9,6 @@ const createState = (ctx, appState) => {
     death: new Array(appState.gridSize*2).fill(0).map(_ => 1 + Math.floor(Math.random()*(gs*gs - 2))),
     goal: gs*gs - 1,
     path: [],
-    ctx: ctx,
     actions: [],
     brain: new Architect.Perceptron(3, 16, 8, 1),
     lastReward: 0,
@@ -18,7 +17,7 @@ const createState = (ctx, appState) => {
     lastTarget: 0 // info purposes only.
   };
 
-  visualize(appState.$visual.getContext('2d'), state.brain);
+  visualize(appState.visualCtx, state.brain);
   return state;
 };
 
@@ -33,7 +32,7 @@ const getActions = (agent, gridSize) => {
   if (gridy != (gridSize - 1)) moves.push(gridSize);
   if (gridx != (gridSize - 1)) moves.push(1);
 
-  return moves.sort((a, b) => Math.random() - Math.random());
+  return moves.sort(() => -0.5 + Math.random());
 };
 
 const getRewardTarget = (state, id) => {
@@ -42,16 +41,16 @@ const getRewardTarget = (state, id) => {
     ? -0.1*state.path.filter(pid => pid == id).length : 0.2;
 
   return state.death.some(d => d == id) ? -1
-    : state.goal == id ? 3
+    : state.goal == id ? 1 
     : rewalked;
 };
 
 const getReward = (state, agent, relearn = true) => {
   if(relearn) state.path.forEach(p => getReward(state, p, false));
 
-  const visited = state.path.filter(pid => pid == agent).length/100;
+  const visited = 0.1*state.path.filter(pid => pid == agent).length;
 
-  const inputs = [agent/state.normalize, visited, state.lastReward];
+  const inputs = [agent/state.normalize, visited, (1 + state.lastReward)/2];
   const target = getRewardTarget(state, agent);
 
   state.brain.activate(inputs);
@@ -62,15 +61,14 @@ const getReward = (state, agent, relearn = true) => {
 
 const moveAgent = (state, appState) =>  {
   state.path.push(state.agent);
+  state.grid.find(g => g.id == state.agent).reward = state.lastReward;
 
   const actions = getActions(state.agent, appState.gridSize)
     .map(a => ({ a, r: getReward(state, state.agent + a) }))
     .sort((a, b) => b.r - a.r);
 
-  actions.forEach(a => state.grid.find(g => g.id == state.agent + a.a).reward = a.r);
-
-  state.lastReward = actions[0].r;
   state.agent += actions[0].a;
+  state.lastReward = actions[0].r;
   state.actions = actions;
 
     return state;
@@ -79,7 +77,7 @@ const moveAgent = (state, appState) =>  {
 const isOver = (state) => {
   const r = getRewardTarget(state, state.agent);
   state.lastTarget = r;
-  if(r == -1 || r == 3 || state.path > 200) {
+  if(r == -1 || r == 1 || state.path.length > 1000) {
     state.agent = 0;
     state.path = [];
   }
