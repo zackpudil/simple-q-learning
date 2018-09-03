@@ -6,6 +6,8 @@ const createAppState = (doc) => ({
   wins: 0,
   longestPath: 0,
   time: 50,
+  gridSize: 10,
+  events: {},
   $reload: doc.getElementById('reload'),
   $pause: doc.getElementById('pause'),
   $wins: doc.getElementById('wins'),
@@ -16,22 +18,42 @@ const createAppState = (doc) => ({
   $actions: doc.getElementById('actions'),
   $gridHigh: doc.getElementById('gridHigh'),
   $gridLow: doc.getElementById('gridLow'),
+  $gridSize: doc.getElementById('gridSize'),
   $visual: doc.getElementById('visual')
 });
 
 const events = (appState) => {
   appState.$reload.onclick = () => {
-    const savePause = appState.pause;
-    appState = clear(appState);
-    appState.pause = savePause;
+    appState.events.reload = true;
+    appState.events.pause = appState.pause;
   };
 
   appState.$pause.onclick = ()  => {
-    appState.pause = !appState.pause;
-    appState.$pause.innerHTML = appState.pause ? 'Play' : 'Pause';
+    appState.events.pause = !appState.pause;
+    appState.$pause.innerHTML = !appState.pause ? 'Play' : 'Pause';
   }
-  appState.$time.onchange = () => appState.time = appState.$time.value;
 
+  appState.$time.oninput = () => {
+    appState.events.time = new Number(appState.$time.value);
+  }
+
+  appState.$gridSize.oninput = () => {
+    appState.events.reload = true;
+    appState.events.gridSize = new Number(appState.$gridSize.value)*5;
+  };
+
+  return appState;
+};
+
+const checkEvents = (appState) => {
+  if(appState.events.reload) appState = clear(appState);
+  Object.keys(appState.events)
+    .filter(k => k != "reload")
+    .forEach(k => {
+      appState[k] = appState.events[k];
+    });
+
+  appState.events = {};
   return appState;
 };
 
@@ -114,8 +136,8 @@ const showGrid = (appState, grid) => {
 
 const showActions = (appState, actions) => {
   const display = {
-      up:    (actions.find(a => a.a == -10) || {r: 100}).r,
-      down:  (actions.find(a => a.a ==  10) || {r: 100}).r,
+      up:    (actions.find(a => a.a == -appState.gridSize) || {r: 100}).r,
+      down:  (actions.find(a => a.a ==  appState.gridSize) || {r: 100}).r,
       left:  (actions.find(a => a.a ==  -1) || {r: 100}).r,
       right: (actions.find(a => a.a ==   1) || {r: 100}).r
     };
@@ -133,6 +155,7 @@ const showActions = (appState, actions) => {
 module.exports = {
   createAppState,
   events,
+  checkEvents,
   clear,
   update,
   updateIter,

@@ -15,18 +15,22 @@
         </div>
       </div>
 
-      <div class="row">
-        <div class="col-md-3"></div>
+      <div class="row form-group">
+        <div class="col-md-1"></div>
         <div class="col-md-2">
           <button id="reload" class="btn btn-block btn-primary">Reload</button>
         </div>
         <div class="col-md-2">
           <button id="pause" class="btn btn-block btn-secondary">Pause</button>
         </div>
-        <div class="col-md-2">
-          <input id="time" type="range" min="0" max="1000" value="50" />
+        <div class="col-md-3">
+          <label for="time">Speed: </label>
+          <input style="direction: rtl" id="time" type="range" min="0" max="1000" value="50" />
         </div>
-        <div class="col-md-3"></div>
+        <div class="col-md-3">
+          <label for="gridSize">Size: </label>
+          <input id="gridSize" type="range" min="1" max="10" value="2" />
+        </div>
       </div>
     </div>
 
@@ -43,6 +47,7 @@
               <th>Wins</th>
               <th>Action</th>
               <th>Longest Trial</th>
+              <th></th>
             </tr>
           </thead>
 
@@ -55,6 +60,7 @@
               <td><span id="wins"></span></td>
               <td><div style="min-width: 125px" id="actions"></div></td>
               <td><span id="longestPath"></span></td>
+              <td style="min-width: 100px"></td>
             </tr>
           </tbody>
         </table>
