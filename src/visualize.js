@@ -1,6 +1,6 @@
 var mx, my;
 
-export default (ctx, brain, called = false) => {
+const main = (ctx, brain, called = false) => {
     if(!called) {
         ctx.canvas.onmousemove = (e) => {
             const rect = ctx.canvas.getBoundingClientRect();
@@ -84,3 +84,5 @@ export default (ctx, brain, called = false) => {
 
     requestAnimationFrame(() => main(ctx, brain, true));
 };
+
+export default main;

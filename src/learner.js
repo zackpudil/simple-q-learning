@@ -68,7 +68,8 @@ export const moveAgent = (state, appState) =>  {
     .map(a => ({ a, r: getReward(state, state.agent + a) }))
     .sort((a, b) => b.r - a.r);
 
-  actions.forEach(a => state.grid.find(g => g.id == state.agent + a.a).reward = a.r);
+  state.grid.forEach(g => g.reward = getReward(state, g.id, false));
+  //actions.forEach(a => state.grid.find(g => g.id == state.agent + a.a).reward = a.r);
 
   const h = state.history.find(h => h.id == state.agent);
   if(!h) state.history.push({ id: state.agent, reward: actions[0].r });
