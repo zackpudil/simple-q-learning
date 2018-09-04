@@ -1,7 +1,7 @@
-const { Architect } = require('synaptic');
-const visualize = require('./visualize');
+import { Architect } from 'synaptic';
+import visualize from './visualize';
 
-const createState = (appState) => {
+export const createState = (appState) => {
   const gs = appState.gridSize;
   const goal = Math.floor(Math.random()*gs*gs);
   const state = {
@@ -25,7 +25,7 @@ const createState = (appState) => {
   return state;
 };
 
-const getActions = (agent, gridSize) => {
+export const getActions = (agent, gridSize) => {
   const moves = [];
   const gridx = agent % gridSize,
         gridy = Math.floor(agent/gridSize);
@@ -48,7 +48,7 @@ const getRewardTarget = (state, id) => {
     : pastReward + rewalked;
 };
 
-const getReward = (state, agent, relearn = true) => {
+export const getReward = (state, agent, relearn = true) => {
   if(relearn) state.history.forEach(p => getReward(state, p.id, false));
 
   const inputs = [agent/state.normalize];
@@ -61,14 +61,14 @@ const getReward = (state, agent, relearn = true) => {
   return (-1 + 2*reward[0]);
 };
 
-const moveAgent = (state, appState) =>  {
+export const moveAgent = (state, appState) =>  {
   state.path.push(state.agent);
 
   const actions = getActions(state.agent, appState.gridSize)
     .map(a => ({ a, r: getReward(state, state.agent + a) }))
     .sort((a, b) => b.r - a.r);
 
-  state.grid.forEach(g => g.reward = getReward(state, g.id, false));
+  actions.forEach(a => state.grid.find(g => g.id == state.agent + a.a).reward = a.r);
 
   const h = state.history.find(h => h.id == state.agent);
   if(!h) state.history.push({ id: state.agent, reward: actions[0].r });
@@ -80,7 +80,7 @@ const moveAgent = (state, appState) =>  {
     return state;
 };
 
-const isOver = (state) => {
+export const isOver = (state) => {
   const r = getRewardTarget(state, state.agent);
   state.lastTarget = r;
   if(r == -1 || r == 3 || state.path.length > 1000) {
@@ -89,12 +89,4 @@ const isOver = (state) => {
   }
 
   return state;
-};
-
-module.exports = {
-  createState,
-  getActions,
-  getReward,
-  moveAgent,
-  isOver
 };

@@ -1,8 +1,8 @@
 require('bootstrap/dist/css/bootstrap.min.css');
 
-const { drawCircle, drawLine, drawRect, drawTriangle } = require('./render');
-const { createAppState, checkEvents, events, update }= require('./app');
-const { createState, moveAgent, isOver } = require('./learner');
+import { drawCircle, drawLine, drawRect, drawTriangle } from './render';
+import { createAppState, checkEvents, events, update } from './app';
+import { createState, moveAgent, isOver } from './learner';
 
 const world = 500;
 

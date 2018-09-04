@@ -1,4 +1,4 @@
-const createAppState = (doc) => ({
+export const createAppState = (doc) => ({
   reload: true,
   pause: false,
   iters: 0,
@@ -23,7 +23,7 @@ const createAppState = (doc) => ({
   $gridSize: doc.getElementById('gridSize')
 });
 
-const events = (appState) => {
+export const events = (appState) => {
   appState.$reload.onclick = () => {
     appState.events.reload = true;
     appState.events.pause = appState.pause;
@@ -46,7 +46,7 @@ const events = (appState) => {
   return appState;
 };
 
-const checkEvents = (appState) => {
+export const checkEvents = (appState) => {
   if(appState.events.reload) appState = clear(appState);
   Object.keys(appState.events)
     .filter(k => k != "reload")
@@ -58,7 +58,7 @@ const checkEvents = (appState) => {
   return appState;
 };
 
-const clear = (appState) => {
+export const clear = (appState) => {
   appState.reload = true;
   appState.pause = false;
   appState.iters = 0;
@@ -77,7 +77,7 @@ const clear = (appState) => {
   return appState;
 };
 
-const update = (appState, state) => {
+export const update = (appState, state) => {
   appState = showGrid(appState, state.grid);
   appState = showActions(appState, state.actions);
   appState = updateIter(appState);
@@ -88,13 +88,13 @@ const update = (appState, state) => {
   return appState;
 };
 
-const updateIter = (appState) => {
+export const updateIter = (appState) => {
   appState.iters++;
   appState.$iters.innerHTML = appState.iters;
   return appState;
 };
 
-const updateDeath = (appState) => {
+export const updateDeath = (appState) => {
   appState.deaths++;
   appState.$deaths.innerHTML = appState.deaths;
   if(appState.deaths >= 50 && appState.wins == 0) {
@@ -106,7 +106,7 @@ const updateDeath = (appState) => {
   return appState;
 };
 
-const updateWin = (appState) => {
+export const updateWin = (appState) => {
   appState.wins++;
   appState.$wins.innerHTML = appState.wins;
 
@@ -117,7 +117,7 @@ const updateWin = (appState) => {
   return appState;
 }
 
-const updatePath = (appState, path) => {
+export const updatePath = (appState, path) => {
   let pathLength = path.length;
 
   if (pathLength > appState.longestPath) appState.longestPath = pathLength;
@@ -126,7 +126,7 @@ const updatePath = (appState, path) => {
   return appState;
 };
 
-const showGrid = (appState, grid) => {
+export const showGrid = (appState, grid) => {
   const grids = grid.sort((a, b) => b.reward - a.reward);
   const gl = grids.length - 1;
   appState.$gridHigh.innerHTML = grids[0] ? grids[0].id : "";
@@ -135,7 +135,7 @@ const showGrid = (appState, grid) => {
   return appState;
 };
 
-const showActions = (appState, actions) => {
+export const showActions = (appState, actions) => {
   const display = {
       up:    (actions.find(a => a.a == -appState.gridSize) || {r: 100}).r,
       down:  (actions.find(a => a.a ==  appState.gridSize) || {r: 100}).r,
@@ -144,25 +144,11 @@ const showActions = (appState, actions) => {
     };
 
     let str = '';
-    for (i in display) {
+    for (let i in display) {
       const d = display[i] == 100 ? 'N/A' : display[i].toFixed(4);
       str += i + ": " + d + "<br />";
     }
 
   appState.$actions.innerHTML = str;
   return appState;
-};
-
-module.exports = {
-  createAppState,
-  events,
-  checkEvents,
-  clear,
-  update,
-  updateIter,
-  updateDeath,
-  updateWin,
-  updatePath,
-  showGrid,
-  showActions
 };

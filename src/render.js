@@ -1,4 +1,4 @@
-const drawCircle = (ctx, [x, y], r, color) => {
+export const drawCircle = (ctx, [x, y], r, color) => {
   ctx.beginPath();
 
   ctx.globalAlpha = 1;
@@ -11,7 +11,7 @@ const drawCircle = (ctx, [x, y], r, color) => {
   ctx.fill();
 };
 
-const drawLine = (ctx, [xf, yf], [xt, yt], color = "black") => {
+export const drawLine = (ctx, [xf, yf], [xt, yt], color = "black") => {
   ctx.globalAlpha = 1;
   ctx.strokeStyle = color;
 
@@ -21,7 +21,7 @@ const drawLine = (ctx, [xf, yf], [xt, yt], color = "black") => {
   ctx.stroke();
 };
 
-const drawRect = (ctx, [xf, yf], [xt, yt], color = "black", alpha = 1) => {
+export const drawRect = (ctx, [xf, yf], [xt, yt], color = "black", alpha = 1) => {
   ctx.globalAlpha = alpha;
   ctx.fillStyle = color;
 
@@ -30,7 +30,7 @@ const drawRect = (ctx, [xf, yf], [xt, yt], color = "black", alpha = 1) => {
   ctx.fill();
 };
 
-const drawTriangle = (ctx, [x, y], r, color = "black") => {
+export const drawTriangle = (ctx, [x, y], r, color = "black") => {
   ctx.globalAlpha = 1;
   ctx.fillStyle = ctx.strokeStyle = color;
 
@@ -44,5 +44,3 @@ const drawTriangle = (ctx, [x, y], r, color = "black") => {
   ctx.globalAlpha = 0.5;
   ctx.fill();
 };
-
-module.exports = { drawCircle, drawLine, drawRect, drawTriangle };
